@@ -60,12 +60,10 @@ if __name__ == "__main__":
             connectionSocket, addr = serverSocket.accept()
             print(f"Connected to client at {addr}")
             state = 'EM ESPERA' # apos estabelecer a conexão TCP a apresentação deve ser realizada
-            print(state)
-            
+                        
             while True:
                 # Recebe a mensagem do cliente
                 message = connectionSocket.recv(1024).decode()
-                print(f"Received: {message}")
                 # Processa a mensagem recebida
                 parts = message.strip().split(' ')
                 if len(parts) < 2:
@@ -74,8 +72,9 @@ if __name__ == "__main__":
                 seq_num = parts[0]  # numero da sequencia
                 command = parts[1]  # comando do cliente
                 
+                print(f'State: {state}')
+                print(f"Message received: {message}")
                 if state == 'EM ESPERA':
-                    print('CUMP ...')
                     if command == "CUMP":
                         if len(parts) < 3: # verificando se tem o argumento
                             print('incomplete message.')
@@ -102,24 +101,24 @@ if __name__ == "__main__":
                     print(state)
                     # Listagem
                     if command == "LIST":
-                        print(command)
                         response = ls("files")
-                        connectionSocket.send(f"{seq_num} {response}".encode())
+                        reply_message = f"{seq_num} {response}"
+                        print(f"Sending message '{reply_message}' to client.")
+                        connectionSocket.send(f"{reply_message}".encode())
                     # Requisiçao de arquivo
                     elif command == "PEGA":
-                        print(command)
                         if len(parts) < 3: # verificando se tem o argumento
                             print('incomplete message.')
                             connectionSocket.send(f"{seq_num} NOK".encode())
                         else:
                             filename = parts[2]
                             response, file_bytes = file_request("files", filename)
-                            print(f"{seq_num} {response} {file_bytes}".encode() )
-                            connectionSocket.send(f"{seq_num} {response} {file_bytes}".encode())
+                            reply_message = f"{seq_num} {response} {file_bytes}"
+                            print(f"Sending message '{reply_message}' to client.")
+                            connectionSocket.send(f"{reply_message}".encode())
 
                     # Fechamento
                     elif command == "TERM":
-                        print(command)
                         closing_connection(connectionSocket, seq_num)
                         break
                     else: # Comando desconhecido, mas não fecha a conexão
